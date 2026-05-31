@@ -1,15 +1,29 @@
-# Aries — Alkanes + Subfrost MCP
+# Aries
 
-A local **stdio** MCP server that does for the **Alkanes metaprotocol + Subfrost**
-what OPNet's Bob does for OPNet: one server bundling three layers —
+**The ultimate AI companion for building on Alkanes + Subfrost.**
 
-- **Knowledge** — searchable docs corpus (`aries_search`, `aries_doc`, `aries_full_doc`, `aries_catalog`)
-- **Chain data** — live reads via the Subfrost JSON-RPC gateway (`aries_tokens_by_address`, `aries_contract_meta`, `aries_bytecode`, `aries_simulate`, `aries_frbtc_status`, `aries_rpc`)
-- **Dev** — constants + scaffolds (`aries_constants`, `aries_scaffold`)
+Aries is a local [Model Context Protocol](https://modelcontextprotocol.io) server
+that turns any MCP-capable AI assistant — Claude Code, Claude Desktop, and friends —
+into a fluent Alkanes/Subfrost builder. One stdio server, three layers: your
+assistant can **read the docs, query the live chain, and scaffold contracts**
+without ever leaving the editor.
 
-v1 is **read-only / analytics**. No signing, no broadcast — keys stay in the
-`alkanes` CLI. The `aries_rpc` passthrough is allowlisted to read methods and
-explicitly blocks broadcast.
+- **Knowledge** — a searchable Alkanes + Subfrost docs corpus. `aries_search`, `aries_doc` (TOC-first reads), `aries_full_doc`, `aries_catalog`. Works offline, no API key.
+- **Chain data** — live, read-only queries against the Subfrost JSON-RPC gateway. `aries_tokens_by_address`, `aries_contract_meta`, `aries_bytecode`, `aries_simulate`, `aries_frbtc_status`, `aries_rpc`.
+- **Dev** — constants and contract scaffolds on tap. `aries_constants`, `aries_scaffold`.
+
+### Ask it things like
+
+- *"Is the frBTC peg live, who's the signer, and how much frBTC exists?"* → `aries_frbtc_status`
+- *"What Alkanes tokens does `bc1p…` hold?"* → `aries_tokens_by_address`
+- *"Decode this Alkanes contract's metadata, or simulate an opcode view."* → `aries_contract_meta`, `aries_simulate`
+- *"How do I structure a wrap protostone?"* → `aries_search` + `aries_scaffold wrap`
+
+## Safety model
+
+v1 is **read-only / analytics**. No signing, no broadcast, no wallet keys — those
+stay in the `alkanes` CLI, where you hold the keys. The `aries_rpc` passthrough is
+allowlisted to read methods and explicitly blocks broadcast/spend/admin calls.
 
 ## Setup
 
