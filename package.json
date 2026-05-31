@@ -1,0 +1,34 @@
+{
+  "name": "aries-mcp",
+  "version": "0.1.0",
+  "description": "Aries — a local stdio MCP server for the Alkanes metaprotocol and Subfrost, modeled on OPNet's Bob.",
+  "type": "module",
+  "bin": {
+    "aries-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "corpus",
+    "corpus-index.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "ingest": "tsx scripts/ingest.ts",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "minisearch": "^7.2.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.19",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.3"
+  }
+}
