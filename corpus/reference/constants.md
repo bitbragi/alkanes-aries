@@ -10,9 +10,12 @@ source_url: https://docs.subfrost.io/developer-guide/alkanes-integration
 | frBTC contract | `{ block: 32, tx: 0 }` (string `32:0`) | The frBTC alkane |
 | Wrap opcode | `77` | frBTC exchange (mint) function |
 | Unwrap opcode | `78` | frBTC unwrap (burn) function |
-| Get-signer opcode | `103` | Query the current signer address |
+| Get-signer opcode | `103` | Query the current signer address (32-byte x-only pubkey) |
 | Name opcode | `99` | frBTC name view (`alkanes_simulate` → "frBTC") |
 | Symbol opcode | `100` | frBTC symbol view (`alkanes_simulate` → "frBTC") |
+| Decimals opcode | `102` | frBTC decimals view (→ `8`) |
+| Total-supply opcode | `105` | frBTC total supply view (u128 little-endian) |
+| Set-signer opcode | `1` | frBTC set-signer (auth-gated; write — not used here) |
 | Mainnet genesis | `880000` | Alkanes mainnet genesis block |
 | Protocol tag | `1` | protorune / alkanes protocol tag (always "1") |
 

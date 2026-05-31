@@ -12,8 +12,9 @@ const fail = (msg: string) => ({
   isError: true,
 });
 
-// frBTC contract is the alkane at block 32, tx 0.
-// Opcode views (verified live): 99 = name, 100 = symbol, 103 = get-signer.
+// frBTC contract is the alkane at block 32, tx 0. Opcode views (verified live
+// and against subfrost/alkanes-rs tests): 99 = name, 100 = symbol,
+// 102 = decimals, 103 = get-signer, 105 = total supply. (77 = wrap, 78 = unwrap.)
 const FRBTC = { block: 32, tx: 0 };
 
 interface SimResult {
@@ -48,6 +49,17 @@ function simulateOpcode(
 function hexToUtf8(hex?: string): string {
   if (!hex || hex === "0x") return "";
   return Buffer.from(hex.replace(/^0x/, ""), "hex").toString("utf8");
+}
+
+/** Decode a "0x…" little-endian u128 hex string into a decimal string. */
+function hexToU128(hex?: string): string {
+  if (!hex || hex === "0x") return "0";
+  const b = hex.replace(/^0x/, "");
+  let n = 0n;
+  for (let i = 0; i < b.length; i += 2) {
+    n |= BigInt(parseInt(b.slice(i, i + 2), 16)) << BigInt(4 * i);
+  }
+  return n.toString();
 }
 
 export function registerChainTools(server: McpServer): void {
@@ -153,24 +165,29 @@ export function registerChainTools(server: McpServer): void {
     "aries_frbtc_status",
     {
       description:
-        "Convenience: fetch frBTC (alkane 32:0) name, symbol, and current signer in one call. Good for 'is the peg live / who is the signer' questions.",
+        "Convenience: fetch frBTC (alkane 32:0) name, symbol, decimals, total supply, and current signer in one call. Good for 'is the peg live / who is the signer / how much frBTC exists' questions.",
       inputSchema: {},
     },
     async () => {
-      // frBTC's standard `alkanes_meta` view panics, so read fields via opcode
-      // views instead: 99 = name, 100 = symbol, 103 = get-signer. (verified live)
+      // frBTC's standard `alkanes_meta` view panics, so read each field via an
+      // opcode view: 99 = name, 100 = symbol, 102 = decimals, 105 = total
+      // supply, 103 = get-signer. (verified live)
       const safe = (p: Promise<SimResult>) =>
         p.catch((e): SimResult => ({ execution: { data: "0x", error: String(e) } }));
       try {
-        const [nameR, symbolR, signerR] = await Promise.all([
+        const [nameR, symbolR, decimalsR, supplyR, signerR] = await Promise.all([
           safe(simulateOpcode(FRBTC, 99)),
           safe(simulateOpcode(FRBTC, 100)),
+          safe(simulateOpcode(FRBTC, 102)),
+          safe(simulateOpcode(FRBTC, 105)),
           safe(simulateOpcode(FRBTC, 103)),
         ]);
         return ok({
           contract: "32:0",
           name: hexToUtf8(nameR.execution?.data),
           symbol: hexToUtf8(symbolR.execution?.data),
+          decimals: Number(hexToU128(decimalsR.execution?.data)),
+          totalSupply: hexToU128(supplyR.execution?.data), // base units (u128)
           signer: signerR.execution?.data ?? null, // 32-byte x-only pubkey (hex)
           signerError: signerR.execution?.error ?? null,
         });
