@@ -15,8 +15,12 @@ with the runes (id {block,tx} + amount) held at that outpoint.
 
 ## alkanes_meta
 
-Params: [ { block, tx }, blockTag? ]. Returns { name, symbol, decimals,
-totalSupply }.
+Params: [ { target: { block, tx } }, blockTag? ]. The id must be wrapped in
+`target` — a bare { block, tx } errors with "Missing or invalid 'target'
+parameter". Returns { name, symbol, decimals, totalSupply } for contracts that
+implement the `meta` view. Some contracts (e.g. frBTC 32:0) do not implement it
+and panic; read their fields via opcode views with alkanes_simulate instead
+(frBTC: 99 = name, 100 = symbol, 103 = get-signer).
 
 ## alkanes_getbytecode
 

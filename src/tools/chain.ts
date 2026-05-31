@@ -12,15 +12,50 @@ const fail = (msg: string) => ({
   isError: true,
 });
 
-// frBTC contract is the alkane at block 32, tx 0. Opcode 103 = get-signer.
+// frBTC contract is the alkane at block 32, tx 0.
+// Opcode views (verified live): 99 = name, 100 = symbol, 103 = get-signer.
 const FRBTC = { block: 32, tx: 0 };
+
+interface SimResult {
+  execution?: { data?: string; error?: string | null };
+  status?: number;
+  gasUsed?: number;
+}
+
+/** Invoke a contract opcode as a read-only view via alkanes_simulate.
+ *  The opcode goes in the cellpack `inputs` (NOT `data`); `target` names the
+ *  alkane, so no [block,tx] prefix is needed. */
+function simulateOpcode(
+  id: { block: number; tx: number },
+  opcode: number,
+  blockTag = "latest",
+): Promise<SimResult> {
+  return rpc<SimResult>("alkanes_simulate", [
+    {
+      alkaneId: id,
+      target: id,
+      inputs: [opcode],
+      pointer: 0,
+      refundPointer: 0,
+      vout: 0,
+      data: "0x",
+    },
+    blockTag,
+  ]);
+}
+
+/** Decode a "0x…" hex string returned by a view into UTF-8 text. */
+function hexToUtf8(hex?: string): string {
+  if (!hex || hex === "0x") return "";
+  return Buffer.from(hex.replace(/^0x/, ""), "hex").toString("utf8");
+}
 
 export function registerChainTools(server: McpServer): void {
   server.registerTool(
     "aries_tokens_by_address",
     {
       description:
-        "List all Alkanes tokens held by a Bitcoin address (wraps alkanes_protorunesbyaddress, protocolTag is always 1). Returns outpoints and the rune balances at each.",
+        "List all Alkanes tokens held by a Bitcoin address (wraps alkanes_protorunesbyaddress, protocolTag is always 1). Returns outpoints and the rune balances at each. Note: very high-activity addresses (thousands of UTXOs, e.g. the frBTC treasury) can exceed the RPC timeout.",
       inputSchema: {
         address: z.string().describe("Bitcoin address, e.g. bc1q…/bc1p…"),
         blockTag: z
@@ -46,7 +81,7 @@ export function registerChainTools(server: McpServer): void {
     "aries_contract_meta",
     {
       description:
-        "Get an Alkanes contract's metadata (name, symbol, decimals, totalSupply) by its alkane id {block, tx}. String id form is block:tx, e.g. 32:0 = frBTC.",
+        "Get an Alkanes contract's metadata (name, symbol, decimals, totalSupply) by its alkane id {block, tx}, via the alkanes_meta view. String id form is block:tx. Note: some contracts (incl. frBTC 32:0) do not implement the meta view and will error — for those, read fields via aries_simulate opcodes (or use aries_frbtc_status for frBTC).",
       inputSchema: {
         block: z.number().int().describe("Etching block height"),
         tx: z.number().int().describe("Tx index within that block"),
@@ -55,7 +90,11 @@ export function registerChainTools(server: McpServer): void {
     },
     async ({ block, tx, blockTag }) => {
       try {
-        return ok(await rpc("alkanes_meta", [{ block, tx }, blockTag ?? "latest"]));
+        // The id must be wrapped in `target`; a bare {block,tx} errors with
+        // "Missing or invalid 'target' parameter". (verified live)
+        return ok(
+          await rpc("alkanes_meta", [{ target: { block, tx } }, blockTag ?? "latest"]),
+        );
       } catch (e) {
         return fail(String(e));
       }
@@ -91,12 +130,12 @@ export function registerChainTools(server: McpServer): void {
     "aries_simulate",
     {
       description:
-        "Simulate an Alkanes view call against a contract without broadcasting — the way to read contract state by invoking an opcode. Pass the full simulation request object (alkaneId, target, inputs, pointer, refundPointer, vout, data).",
+        "Simulate an Alkanes view call against a contract without broadcasting — the way to read contract state by invoking an opcode. Pass the full simulation request object. The opcode goes in `inputs` (e.g. [103]); `target` names the alkane (no [block,tx] prefix in inputs).",
       inputSchema: {
         request: z
           .record(z.any())
           .describe(
-            "alkanes_simulate request object, e.g. { alkaneId:{block,tx}, target:{block,tx}, inputs:[], pointer:0, refundPointer:0, vout:0, data:'0x…' }",
+            "alkanes_simulate request object, e.g. { alkaneId:{block,tx}, target:{block,tx}, inputs:[103], pointer:0, refundPointer:0, vout:0, data:'0x' }",
           ),
         blockTag: z.string().optional(),
       },
@@ -114,28 +153,27 @@ export function registerChainTools(server: McpServer): void {
     "aries_frbtc_status",
     {
       description:
-        "Convenience: fetch frBTC (alkane 32:0) metadata and current signer in one call. Good for 'is the peg live / who is the signer' questions.",
+        "Convenience: fetch frBTC (alkane 32:0) name, symbol, and current signer in one call. Good for 'is the peg live / who is the signer' questions.",
       inputSchema: {},
     },
     async () => {
+      // frBTC's standard `alkanes_meta` view panics, so read fields via opcode
+      // views instead: 99 = name, 100 = symbol, 103 = get-signer. (verified live)
+      const safe = (p: Promise<SimResult>) =>
+        p.catch((e): SimResult => ({ execution: { data: "0x", error: String(e) } }));
       try {
-        const meta = await rpc("alkanes_meta", [FRBTC, "latest"]).catch(
-          (e) => ({ error: String(e) }),
-        );
-        // Opcode 103 = get-signer, invoked as a view via simulate.
-        const signer = await rpc("alkanes_simulate", [
-          {
-            alkaneId: FRBTC,
-            target: FRBTC,
-            inputs: [],
-            pointer: 0,
-            refundPointer: 0,
-            vout: 0,
-            data: "0x67", // 103
-          },
-          "latest",
-        ]).catch((e) => ({ error: String(e) }));
-        return ok({ contract: "32:0", meta, signerProbe: signer });
+        const [nameR, symbolR, signerR] = await Promise.all([
+          safe(simulateOpcode(FRBTC, 99)),
+          safe(simulateOpcode(FRBTC, 100)),
+          safe(simulateOpcode(FRBTC, 103)),
+        ]);
+        return ok({
+          contract: "32:0",
+          name: hexToUtf8(nameR.execution?.data),
+          symbol: hexToUtf8(symbolR.execution?.data),
+          signer: signerR.execution?.data ?? null, // 32-byte x-only pubkey (hex)
+          signerError: signerR.execution?.error ?? null,
+        });
       } catch (e) {
         return fail(String(e));
       }

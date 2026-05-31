@@ -26,19 +26,22 @@ The doc index is built from `corpus/` at startup. Logs go to **stderr** only
 ## Register with Claude Code (stdio)
 
 ```bash
-claude mcp add --transport stdio --env SUBFROST_API_KEY=YOUR_KEY ace \
+claude mcp add --scope local --transport stdio aries \
+  -e SUBFROST_API_KEY=YOUR_KEY \
   -- node /absolute/path/to/aries-mcp/dist/index.js
 ```
 
-Verify with `claude mcp list`, then `/mcp` inside a session. Flags go before the
-name; `--` separates Claude's flags from the launch command.
+Verify with `claude mcp list`, then `/mcp` inside a session. `--` separates
+Claude's flags from the launch command. Note: `-e KEY=value` is variadic — put
+the server name *before* it and keep `-e …` right before `--`, or it will
+swallow the name.
 
 ## Claude Desktop
 
 ```json
 {
   "mcpServers": {
-    "ace": {
+    "aries": {
       "command": "node",
       "args": ["/absolute/path/to/aries-mcp/dist/index.js"],
       "env": { "SUBFROST_API_KEY": "..." }
@@ -51,5 +54,6 @@ name; `--` separates Claude's flags from the launch command.
 
 - API key is sent as the `x-subfrost-api-key` header, never in the URL path.
 - Alkane ids are `{block, tx}` / `block:tx`. frBTC = `32:0`. Protocol tag is always `1`.
+- Read contract state with `alkanes_simulate`: the opcode goes in `inputs` (e.g. `[103]`), not `data`.
 - Extend the corpus by editing `corpus/` or adding URLs to `scripts/ingest.ts`.
 - Tool descriptions are the prompt the model reads — keep them crisp when you add tools.
