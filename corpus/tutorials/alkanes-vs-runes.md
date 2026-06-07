@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-alkanes-vs-runes.php
 ---
 
-Tutorial 15 · 12 min read
+Tutorial 16 · 12 min read
 
 # 🪨 Alkanes vs Runes — what's the difference?
 

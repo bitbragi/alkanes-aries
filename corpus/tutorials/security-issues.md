@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-security-issues.php
 ---
 
-Tutorial 18 · 16 min read
+Tutorial 19 · 16 min read
 
 # 🛡️ Security issues in Alkanes smart contracts
 

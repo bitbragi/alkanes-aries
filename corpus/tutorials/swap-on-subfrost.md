@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-swap-subfrost.php
 ---
 
-Tutorial 16 · 10 min read
+Tutorial 17 · 10 min read
 
 # 🔄 How to swap tokens on Subfrost
 

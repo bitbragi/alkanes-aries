@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-mint-diesel.php
 ---
 
-Tutorial 9 · 11 min read
+Tutorial 10 · 11 min read
 
 # 🏭 How to mint DIESEL tokens
 

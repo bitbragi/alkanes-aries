@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-frbtc-subfrost.php
 ---
 
-Tutorial 12 · 13 min read
+Tutorial 13 · 13 min read
 
 # ₿ What is frBTC and Subfrost?
 

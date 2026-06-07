@@ -24,18 +24,19 @@ interface SimResult {
 }
 
 /** Invoke a contract opcode as a read-only view via alkanes_simulate.
- *  The opcode goes in the cellpack `inputs` (NOT `data`); `target` names the
- *  alkane, so no [block,tx] prefix is needed. */
+ *  The opcode + any args go in the cellpack `inputs` (NOT `data`); `target`
+ *  names the alkane, so no [block,tx] prefix is needed. */
 function simulateOpcode(
   id: { block: number; tx: number },
   opcode: number,
+  args: number[] = [],
   blockTag = "latest",
 ): Promise<SimResult> {
   return rpc<SimResult>("alkanes_simulate", [
     {
       alkaneId: id,
       target: id,
-      inputs: [opcode],
+      inputs: [opcode, ...args],
       pointer: 0,
       refundPointer: 0,
       vout: 0,
@@ -51,15 +52,48 @@ function hexToUtf8(hex?: string): string {
   return Buffer.from(hex.replace(/^0x/, ""), "hex").toString("utf8");
 }
 
+/** Read `len` little-endian bytes at byte offset `start` of a hex string (no 0x). */
+function leUint(hexNo0x: string, start: number, len: number): bigint {
+  let n = 0n;
+  for (let i = len - 1; i >= 0; i--) {
+    const byte = hexNo0x.slice((start + i) * 2, (start + i) * 2 + 2);
+    n = (n << 8n) | BigInt(parseInt(byte || "0", 16));
+  }
+  return n;
+}
+
 /** Decode a "0x…" little-endian u128 hex string into a decimal string. */
 function hexToU128(hex?: string): string {
   if (!hex || hex === "0x") return "0";
   const b = hex.replace(/^0x/, "");
-  let n = 0n;
-  for (let i = 0; i < b.length; i += 2) {
-    n |= BigInt(parseInt(b.slice(i, i + 2), 16)) << BigInt(4 * i);
+  return leUint(b, 0, b.length / 2).toString();
+}
+
+type Decode = "raw" | "u128" | "u64" | "u32" | "utf8" | "bool" | "price";
+
+/** Decode an oracle/view's execution.data per a hint. */
+function decodeData(hex: string | undefined, how: Decode): unknown {
+  const h = (hex ?? "0x").replace(/^0x/, "");
+  switch (how) {
+    case "utf8":
+      return hexToUtf8(hex);
+    case "bool":
+      return h.length >= 2 && parseInt(h.slice(0, 2), 16) !== 0;
+    case "u128":
+    case "u64":
+    case "u32":
+      return hexToU128(hex);
+    case "price":
+      return {
+        priceE8: leUint(h, 0, 16).toString(),
+        price: Number(leUint(h, 0, 16)) / 1e8,
+        priceBlock: Number(leUint(h, 16, 8)),
+        updatedBlock: Number(leUint(h, 24, 8)),
+      };
+    case "raw":
+    default:
+      return hex ?? "0x";
   }
-  return n.toString();
 }
 
 export function registerChainTools(server: McpServer): void {
@@ -191,6 +225,83 @@ export function registerChainTools(server: McpServer): void {
           signer: signerR.execution?.data ?? null, // 32-byte x-only pubkey (hex)
           signerError: signerR.execution?.error ?? null,
         });
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_oracle_read",
+    {
+      description:
+        "Read a value from a deployed Alkanes oracle contract via a staticcall-safe view (alkanes_simulate). Give the oracle's alkane id {block,tx}, the read opcode, and any inputs (u128 each). `decode` shapes execution.data: raw hex (default), u128/u64/u32 (little-endian int as a string), utf8, bool (first byte), or price (16B price ‖ 8B price_block ‖ 8B updated_block). See corpus reference/oracles.md and corpus/oracles/ for each oracle's read opcodes.",
+      inputSchema: {
+        block: z.number().int(),
+        tx: z.number().int(),
+        opcode: z
+          .number()
+          .int()
+          .describe("Read opcode, e.g. price feed 10 = GetPrice, block-header 10 = current_height"),
+        inputs: z
+          .array(z.number().int())
+          .optional()
+          .describe("Opcode args (u128 each), e.g. [symbolId]"),
+        decode: z.enum(["raw", "u128", "u64", "u32", "utf8", "bool", "price"]).optional(),
+        blockTag: z.string().optional(),
+      },
+    },
+    async ({ block, tx, opcode, inputs, decode, blockTag }) => {
+      try {
+        const r = await simulateOpcode({ block, tx }, opcode, inputs ?? [], blockTag ?? "latest");
+        if (r.execution?.error) {
+          return ok({ oracle: `${block}:${tx}`, opcode, error: r.execution.error });
+        }
+        return ok({
+          oracle: `${block}:${tx}`,
+          opcode,
+          decoded: decodeData(r.execution?.data, (decode ?? "raw") as Decode),
+          data: r.execution?.data ?? "0x",
+          status: r.status,
+        });
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_oracle_price",
+    {
+      description:
+        "Read the latest price from a Chainlink-style Alkanes price-feed oracle (opcode 10 = GetPrice). Give the oracle alkane id {block,tx} and the symbolId. Returns priceE8 (raw 1e8-scaled u128), price (number), priceBlock, updatedBlock, and ageBlocks (vs current height). Needs a deployed price-feed instance — the feed is a template (see reference/oracles.md), so pass the id you want to read.",
+      inputSchema: {
+        block: z.number().int(),
+        tx: z.number().int(),
+        symbolId: z.number().int().describe("Symbol id registered in the feed (u32)"),
+        blockTag: z.string().optional(),
+      },
+    },
+    async ({ block, tx, symbolId, blockTag }) => {
+      try {
+        const r = await simulateOpcode({ block, tx }, 10, [symbolId], blockTag ?? "latest");
+        if (r.execution?.error) {
+          return fail(`oracle ${block}:${tx} GetPrice(${symbolId}): ${r.execution.error}`);
+        }
+        const p = decodeData(r.execution?.data, "price") as {
+          priceE8: string;
+          price: number;
+          priceBlock: number;
+          updatedBlock: number;
+        };
+        let ageBlocks: number | null = null;
+        try {
+          const height = Number(await rpc<string>("metashrew_height", []));
+          if (Number.isFinite(height) && p.updatedBlock) ageBlocks = height - p.updatedBlock;
+        } catch {
+          /* height is best-effort */
+        }
+        return ok({ oracle: `${block}:${tx}`, symbolId, ...p, ageBlocks });
       } catch (e) {
         return fail(String(e));
       }

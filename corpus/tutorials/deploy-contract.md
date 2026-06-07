@@ -108,6 +108,7 @@ Only **plain BTC UTXOs** pay fees. UTXOs carrying inscriptions or other alkanes 
 
 ## Troubleshooting
 
+-   **Explorer shows `0:0` + unexpected end-of-file** — Wrong deploy calldata `[0,0,0,…]` instead of `[1,0,0,…]`. See the dedicated guide: [Deploy failed with 0:0? Fix atomic calldata](tutorials/tutorial-deploy-calldata.php).
 -   **Compile failed** — Read error log; often missing import (`to_arraybuffer_layout`) or syntax error
 -   **Expected Point / taproot** — Disconnect UniSat, reconnect, retry
 -   **Insufficient balance** — More BTC or consolidate UTXOs; try fee rate 1
@@ -115,5 +116,11 @@ Only **plain BTC UTXOs** pay fees. UTXOs carrying inscriptions or other alkanes 
 -   **Initialize reverts** — Wrong init args or attached tokens; double-check Step 2 settings on Deploy and your contract’s Initialize rules
 
 Server health: Deploy page checks the compiler on our backend. If red, the server may be temporarily unavailable — your code can still be valid; try again later or [contact us](contact.php) if it persists.
+
+## 0:0 and “unexpected end-of-file” on reveal
+
+If the reveal tx confirms but the Alkanes call targets `0:0` and reverts, your Node deploy script used `[0, 0, 0, …init]` instead of the factory pattern `[1, 0, 0, …init]`. Successful deploys in this repo (ico\_freemint, prediction\_market\_rounds, deploy-usda) all use the latter.
+
+[**Full walkthrough: fix calldata and redeploy →**](tutorials/tutorial-deploy-calldata.php)
 
 [← All tutorials](tutorials/)

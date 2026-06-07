@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-ordiscan.php
 ---
 
-Tutorial 11 · 10 min read
+Tutorial 12 · 10 min read
 
 # 🔎 How to view Alkanes contracts on Ordiscan
 

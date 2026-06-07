@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-wrapped-token.php
 ---
 
-Tutorial 20 · 22 min read
+Tutorial 21 · 22 min read
 
 # 🟠 How to make a wrapped BRC-20 token on Alkanes
 
@@ -216,7 +216,7 @@ Digest formula (owner example): `SHA256(domain ‖ block_le ‖ tx_le ‖ admin_
 
 ## Deploy one ticker (CLI on your server)
 
-Same flow as [deploy tutorial](tutorials/tutorial-deploy.php) (commit → wait → reveal), but use the wrap deploy script so Initialize bytes are correct.
+Same flow as [deploy tutorial](tutorials/tutorial-deploy.php) (commit → wait → reveal), but use the wrap deploy script so Initialize bytes are correct. Calldata must be `[1, 0, 0, …init]` — not `[0, 0, 0, …]` (see [Deploy failed with 0:0?](tutorials/tutorial-deploy-calldata.php)).
 
 1
 
@@ -393,6 +393,6 @@ pm2 start bridge-server.mjs --name wrap-brc20
 
 -   Live UI: [Wrapped BRC-20 bridge](wrap-brc20.php) (tabs: wORDI, wSATS, wPEPE)
 -   Contract README: `contracts/wrap_ordi/README.md`
--   Related: [Smart contract tutorial](tutorials/tutorial-smart-contract.php) · [Deploy tutorial](tutorials/tutorial-deploy.php) · [espo.sh tracking](tutorials/tutorial-espo.php)
+-   Related: [Smart contract tutorial](tutorials/tutorial-smart-contract.php) · [Deploy tutorial](tutorials/tutorial-deploy.php) · [0:0 calldata fix](tutorials/tutorial-deploy-calldata.php) · [espo.sh tracking](tutorials/tutorial-espo.php)
 
 [← All tutorials](tutorials/)

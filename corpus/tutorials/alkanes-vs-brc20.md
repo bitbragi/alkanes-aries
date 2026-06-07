@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-alkanes-vs-brc20.php
 ---
 
-Tutorial 14 · 11 min read
+Tutorial 15 · 11 min read
 
 # ⚖️ Alkanes vs BRC-20 — what's the difference?
 

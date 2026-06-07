@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-stablecoin.php
 ---
 
-Tutorial 13 · 18 min read
+Tutorial 14 · 18 min read
 
 # 💵 How to create a stablecoin on Alkanes
 

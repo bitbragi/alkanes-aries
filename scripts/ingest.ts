@@ -36,7 +36,7 @@ td.remove(["script", "style", "noscript", "nav", "footer", "form", "svg", "ifram
 
 // Non-content containers (by class/id token) seen across the source sites.
 const JUNK =
-  /(^|\s)(navbar|ticker-bar|tut-toc|tut-breadcrumb|tut-nav-footer|footer|sidebar|site-header|cookie)(\s|$)/i;
+  /(^|\s)(navbar|ticker-bar|tut-toc|tut-breadcrumb|tut-nav-footer|footer|sidebar|site-header|cookie|tab-btn|tab-strip|code-toolbar|code-copy|code-lang)(\s|$)/i;
 // Preferred content containers; first non-trivial match wins.
 const CONTENT = [
   ".tut-page",
@@ -126,6 +126,12 @@ const SOURCES: Source[] = [
   { source: "tutorials", slug: "indexers", url: "https://alkanescan.org/tutorials/tutorial-indexers.php" },
   { source: "tutorials", slug: "wrapped-brc20-token", url: "https://alkanescan.org/tutorials/tutorial-wrapped-token.php" },
   { source: "tutorials", slug: "build-an-amm", url: "https://alkanescan.org/tutorials/tutorial-amm.php" },
+  // AlkaneScan oracle reference pages (alkanescan.org) — patterns + interfaces
+  { source: "oracles", slug: "overview", url: "https://alkanescan.org/oracles.php" },
+  { source: "oracles", slug: "price-feed", url: "https://alkanescan.org/oracle-price-feed.php" },
+  { source: "oracles", slug: "block-header", url: "https://alkanescan.org/oracle-block-header.php" },
+  { source: "oracles", slug: "random-number", url: "https://alkanescan.org/oracle.php?id=random" },
+  { source: "oracles", slug: "delay-vault", url: "https://alkanescan.org/oracle-delay-vault.php" },
   // orddao reference contracts (READMEs, raw markdown)
   { source: "orddao", slug: "block-header-oracle", url: "https://raw.githubusercontent.com/orddao/Block-Header-Oracle/main/README.md" },
   { source: "orddao", slug: "stocks-price-oracle", url: "https://raw.githubusercontent.com/orddao/Stocks-price-oracle-smart-contract-for-Alkanes-/main/README.md" },

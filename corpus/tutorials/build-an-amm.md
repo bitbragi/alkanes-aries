@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-amm.php
 ---
 
-Tutorial 21 · 24 min read
+Tutorial 22 · 24 min read
 
 # 💧 How to build an AMM on Alkanes (OYL Swap / iDclub)
 

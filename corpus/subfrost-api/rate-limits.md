@@ -191,4 +191,4 @@ If you need higher limits:
 1.  **Pro Plan** - 10x free tier limits ($45-$55/mo)
 2.  **Business** - Custom limits, SLA, dedicated support ($90-$120/mo)
 
-Contact [\[email protected\]](/cdn-cgi/l/email-protection#4437252821370437312622362b37306a2d2b) for Business pricing.
+Contact [\[email protected\]](/cdn-cgi/l/email-protection#0576646960764576706763776a76712b6c6a) for Business pricing.

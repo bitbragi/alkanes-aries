@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-swap-idclub.php
 ---
 
-Tutorial 17 · 10 min read
+Tutorial 18 · 10 min read
 
 # 🔁 How to swap tokens on iDclub
 

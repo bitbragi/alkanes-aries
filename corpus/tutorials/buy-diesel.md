@@ -4,7 +4,7 @@ source: tutorials
 source_url: https://alkanescan.org/tutorials/tutorial-buy-diesel.php
 ---
 
-Tutorial 8 · 10 min read
+Tutorial 9 · 10 min read
 
 # ⛽ How to buy DIESEL tokens
 
