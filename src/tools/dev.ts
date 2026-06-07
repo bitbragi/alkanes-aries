@@ -19,9 +19,9 @@ export function registerDevTools(server: McpServer): void {
     "aries_scaffold",
     {
       description:
-        "Return a scaffold/recipe: 'wrap' (mint frBTC protostone), 'unwrap' (burn frBTC), or 'contract' (alkanes-rs WASM contract skeleton). These are starting templates, not audited code.",
+        "Return a scaffold/recipe: 'wrap' (mint frBTC protostone), 'unwrap' (burn frBTC), 'contract' (alkanes-rs WASM contract skeleton), or 'orbital' (Alkanes NFT / Orbital contract skeleton — a Token with supply 1 + opcode 1000 media). These are starting templates, not audited code.",
       inputSchema: {
-        kind: z.enum(["wrap", "unwrap", "contract"]),
+        kind: z.enum(["wrap", "unwrap", "contract", "orbital"]),
       },
     },
     async ({ kind }) => text(fullDoc(`reference/scaffolds/${kind}.md`)),

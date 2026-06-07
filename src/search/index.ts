@@ -62,11 +62,15 @@ function chunkFile(absPath: string): Chunk[] {
   const chunks: Chunk[] = [];
   let heading = "";
   let buf: string[] = [];
+  const seen = new Map<string, number>(); // disambiguate repeated headings within one doc
 
   const flush = () => {
     const body = buf.join("\n").trim();
     if (body) {
-      const anchor = slug(heading) || "_intro";
+      let anchor = slug(heading) || "_intro";
+      const n = (seen.get(anchor) ?? 0) + 1;
+      seen.set(anchor, n);
+      if (n > 1) anchor = `${anchor}-${n}`; // e.g. build, build-2, build-3
       chunks.push({
         id: `${rel}#${anchor}`,
         path: rel,

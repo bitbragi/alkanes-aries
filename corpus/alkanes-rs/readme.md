@@ -1,162 +1,132 @@
 ---
-title: free-mint
+title: alkanes-rs
 source: alkanes-rs
-source_url: https://raw.githubusercontent.com/kungfuflex/alkanes-rs/master/README.md
+source_url: https://raw.githubusercontent.com/kungfuflex/alkanes-rs/main/README.md
 ---
 
-# free-mint
+# alkanes-rs
 
-These are the sources for the template deployed at [4, 797].
+![Tests](https://img.shields.io/github/actions/workflow/status/AssemblyScript/assemblyscript/test.yml?branch=main&label=test&logo=github)
+![Publish](https://img.shields.io/github/actions/workflow/status/AssemblyScript/assemblyscript/publish.yml?branch=main&label=publish&logo=github)
 
-This alkane is adapted from earlier testing versions by the same name, but suitable for production usage. It enables semantics similar to what we are used to in runes ecosystem mints, but on the ALKANES metaprotocol. This template can be spawned using factory cellpacks and a data segment can be appended (such as a graphic), but other parameters can be supplied for an initial premine, a mint quantity per mint transaction, a cap, and a name/symbol, supplied with the initialization vector in the alkanes protocol message.
+**The ALKANES specification is hosted at** 👉🏻👉🏼👉🏽👉🏾👉🏿 [https://github.com/kungfuflex/alkanes-rs/wiki](https://github.com/kungfuflex/alkanes-rs/wiki)
 
-## 🔒 Deterministic Builds & Verification
+This repository hosts Rust sources for the ALKANES metaprotocol. The indexer for ALKANES can be built as the top level crate in the monorepo, with builds targeting wasm32-unknown-unknown, usable within the METASHREW indexer stack.
 
-This contract supports **reproducible builds** for bytecode verification (similar to Etherscan source verification). Anyone can verify that deployed bytecode matches the published source code.
+ALKANES is a metaprotocol designed to support an incarnation of DeFi as we have traditionally seen it, but designed specifically for the Bitcoin consensus model and supporting structures.
+The ALKANES genesis block is 880000. Builders are encouraged to test on regtest using the docker-compose environment at [https://github.com/kungfuflex/alkanes](https://github.com/kungfuflex/alkanes)
 
-**Quick Start:**
-```bash
-# Build deterministically (requires Docker)
-./scripts/build-reproducible.sh
+A signet RPC will be available on https://signet.sandshrew.io
 
-# Verify against published checksum
-./scripts/verify-build.sh <sha256-hash>
-```
+Join ALKANES / metashrew discussion on the SANDSHREW サンド Discord.
 
-**Documentation:**
-- 📖 [Quick Start Guide](./VERIFICATION_QUICK_START.md) - TL;DR for busy developers
-- 📚 [Complete Documentation](./DETERMINISTIC_BUILDS.md) - Technical deep-dive
-- 📋 [Changes Summary](./CHANGES_SUMMARY.md) - What was implemented
+#### NOTE: ALKANES does not have a network token
 
----
+Protocol fees are accepted in terms of Bitcoin and compute is metered with the wasmi fuel implementation, for protection against DoS.
 
-## Overview
+## Software Topology
 
-This contract implements a token with free mint capabilities using the alkane framework. It includes security features such as:
+This repository is a pure Rust implementation, built entirely for a WASM target and even tested within the WASM test runner `wasm-bindgen-test-runner`.
 
-- Proper initialization guard via observe_initialization()
-- Transaction hash validation to enforce one mint per transaction
-- Comprehensive overflow protection
-- Supply cap enforcement
+The top level crate in the monorepo contains sources for the ALKANES indexer, built for the METASHREW environment.
 
-## Features
+ALKANES is designed and implemented as a subprotocol of runes, one which is protorunes compatible. In order to encapsulate the behavior of protorunes for a Rust build system, a Rust implementation of protorunes generics is contained in the monorepo in `crates/protorune`.
 
-- Standard token functionality (name, symbol, total supply)
-- Free mint capabilities with configurable parameters
-- Transaction-based mint limits
-- Supply cap enforcement
-- Comprehensive view functions
+For information on protorunes, refer to the specification hosted at:
 
-## Storage Pattern
+[https://github.com/kungfuflex/protorune/wiki](https://github.com/kungfuflex/protorune/wiki)
 
-The contract follows the established storage pattern using StoragePointer::from_keyword for all persistent storage with the following keys:
+The indexer stack used to synchronize the state of the metaprotocol and offer an RPC to consume its data and features is METASHREW. METASHREW is started with a WASM binary of the indexer program, produced with a normal build of this repository as `alkanes.wasm`.
 
-- `/name` - Token name
-- `/symbol` - Token symbol
-- `/totalsupply` - Total supply tracking (Total supply in circulation. Not max supply)
-- `/minted` - Total mints counter
-- `/value-per-mint` - Value per mint configuration
-- `/cap` - Maximum supply cap (This the maximum amount of times it can be minted) 
-- `/data` - Additional token data
-- `/initialized` - Initialization guard
-- `/tx-hashes` - Transaction hash tracking for mint limits
+Bindings to the METASHREW environment are available in `crates/metashrew`.
 
-## Opcodes
+Sources needed to build both metashrew and protorunes meant to be shared with builds of individual alkanes or the generic alkanes-runtime bindings are factored out into `crates/metashrew-support` and `crates/protorune-support` such that they can be imported into an alkane build without the metashrew import definitions leaking in and generating import statements for the METASHREW environment.
 
-The contract implements all required opcodes:
+In this way, all crates with a `-support` suffix can be imported into any Rust project since they do not depend on a specific environment or `wasm-bindgen`.
 
-- 0: Initialize(token_units, value_per_mint, cap, name, symbol)
-     - token_units : Initial pre-mine tokens to be received on deployer's address
-     - value_per_mint: Amount of tokens to be received on each successful mint
-     - cap: Max amount of times the token can be minted
-     - name: Token name
-     - symbol: Token symbol
-- 77: MintTokens()
-- 88: SetNameAndSymbol(name, symbol)
-- 99: GetName() -> String
-- 100: GetSymbol() -> String
-- 101: GetTotalSupply() -> u128
-- 102: GetCap() -> u128
-- 103: GetMinted() -> u128
-- 104: GetValuePerMint() -> u128
-- 1000: GetData() -> Vec<u8>
+This design is permissive enough for this monorepo to host `alkanes-runtime`, which is a complete set of bindings for building alkane smart contracts to a WASM format, suitable for deployment within the witness envelope of a Bitcoin transaction.
 
-## Security Patterns
-
-The contract implements several security patterns:
-
-1. **Initialization Guard**: Prevents multiple initializations of the contract.
-   ```rust
-   fn observe_initialization(&self) -> Result<()> {
-       let mut pointer = StoragePointer::from_keyword("/initialized");
-       if pointer.get().len() == 0 {
-           pointer.set_value::<u8>(0x01);
-           Ok(())
-       } else {
-           Err(anyhow!("already initialized"))
-       }
-   }
-   ```
-
-2. **Transaction Hash Validation**: Enforces one mint per transaction.
-   ```rust
-   // Check if a transaction hash has been used for minting
-   pub fn has_tx_hash(&self, txid: &Txid) -> bool {
-       StoragePointer::from_keyword("/tx-hashes/")
-           .select(&txid.as_byte_array().to_vec())
-           .get_value::<u8>() == 1
-   }
-   
-   // Add a transaction hash to the used set
-   pub fn add_tx_hash(&self, txid: &Txid) -> Result<()> {
-       StoragePointer::from_keyword("/tx-hashes/")
-           .select(&txid.as_byte_array().to_vec())
-           .set_value::<u8>(0x01);
-       Ok(())
-   }
-   ```
-
-3. **Overflow Protection**: Prevents integer overflow vulnerabilities.
-   ```rust
-   fn increase_total_supply(&self, v: u128) -> Result<()> {
-       self.set_total_supply(overflow_error(self.total_supply().checked_add(v))
-           .map_err(|_| anyhow!("total supply overflow"))?);
-       Ok(())
-   }
-   ```
-
-4. **Cap Enforcement**: Prevents minting beyond the supply cap.
-   ```rust
-   // Check if minting would exceed cap
-   if self.minted() >= self.cap() {
-       return Err(anyhow!("Supply cap reached: {} of {}", self.minted(), self.cap()));
-   }
-   ```
+Boilerplate for various alkanes are included and prefixed with `alkanes-std-` and placed in the `crates/` directory. The build system is designed such that the WASM builds of each crate with this prefix is made available to the test suite as a Rust source file.
 
 ## Building
 
-To build the contract:
+ALKANES is built with the command:
 
-```bash
-cargo build
+```sh
+cargo build --release --features mainnet
 ```
 
-To build for WebAssembly:
+Replace `mainnet` with your network of choice. Constants are defined for luckycoin, regtest, mainnet, dogecoin, bellscoin, and fractal. For other networks or test networks, use the regtest feature.
 
-```bash
-cargo build --target wasm32-unknown-unknown --release
+An `alkanes.wasm` file will be built, as well as a WASM for every crate prefixed with `alkanes-std-`, which will be built to `target/alkanes/wasm32-unknown-unknown/release`
+
+## Indexing
+
+Refer to the METASHREW documentation for descriptions of the indexer stack used for ALKANES.
+
+[https://github.com/sandshrewmetaprotocols/metashrew](https://github.com/sandshrewmetaprotocols/metashrew)
+
+A sample command may look like:
+
+```sh
+~/metashrew/target/release/rockshrew-mono --daemon-rpc-url http://localhost:8332 --auth bitcoinrpc:bitcoinrpc --db-path ~/.metashrew --indexer ~/alkanes-rs/target/wasm32-unknown-unknown/release/alkanes.wasm --start-block 880000 --host 0.0.0.0 --port 8080 --cors '*'
 ```
 
-## Testing
+### Testing
 
-The project includes a comprehensive test suite that can be run with:
+To run all tests in the monorepo
 
-```bash
+```
+# this might be necessary if running into: could not execute process `wasm-bindgen-test-runner...
+cargo install -f wasm-bindgen-cli --version 0.2.100
+```
+
+```
+cargo test --all
+```
+
+To test the alkanes indexer end-to-end, it is only required to run:
+
+```
 cargo test
 ```
 
-The tests use the `test-utils` feature of the alkanes-runtime crate to provide a mock environment for testing.
+To run tests for a specific crate
 
-## License
+```
+cargo test -p [CRATE]
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+example:
+
+```
+cargo test --features test-utils -p protorune
+```
+
+This will provide a stub environment to test a METASHREW indexer program, and it will test the alkanes standard library smart contracts in simulated blocks.
+
+Features are provided within the Cargo.toml at the root of the monorepo to declare alkanes which should be built with `cargo build` or `cargo test`.
+
+### Unit testing
+
+- These are written inside the library rust code
+- Do not compile to wasm, instead unit test the native rust. Therefore, you need to find the correct target for your local machine to properly run these tests. Below are some common targets for some architectures:
+  - Macbook intel x86: x86_64-apple-darwin
+  - Macbook Apple silicon: aarch64-apple-darwin
+  - Ubuntu 20.04 LTS: x86_64-unknown-linux-gnu
+
+```
+cargo test -p protorune --target TARGET
+```
+
+### Authors
+
+- flex
+- v16
+- butenprks
+- clothic
+- m3
+
+### License
+
+MIT

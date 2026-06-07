@@ -82,6 +82,32 @@ function firstMdHeading(md: string): string {
   return (md.match(/^#\s+(.+)$/m)?.[1] ?? "").trim();
 }
 
+const CODE_LANG: Record<string, string> = {
+  rs: "rust",
+  toml: "toml",
+  ts: "typescript",
+  js: "javascript",
+  json: "json",
+};
+
+/** A source is "raw text" if it's a .md/.rs/.toml/... file or a raw GitHub URL. */
+function isRawText(url: string): boolean {
+  return /\.(md|rs|toml|txt|json)(\?|$)/i.test(url) || url.includes("raw.githubusercontent.com");
+}
+
+/** Wrap a raw file as markdown: .md verbatim; code/text fenced under an H1 so it
+ *  indexes as a clean, titled chunk. */
+function rawDoc(url: string, slug: string, raw: string): { title: string; body: string } {
+  const ext = (url.split("?")[0].split(".").pop() ?? "").toLowerCase();
+  if (ext === "md") {
+    const body = raw.trim();
+    return { title: firstMdHeading(body) || slug, body };
+  }
+  const lang = CODE_LANG[ext] ?? "";
+  const fenced = raw.replace(/```/g, "ʼʼʼ").trimEnd();
+  return { title: slug, body: `# ${slug}\n\n\`\`\`${lang}\n${fenced}\n\`\`\`\n` };
+}
+
 // Expand this list freely. HTML pages are cleaned via extract(); *.md URLs are
 // taken verbatim.
 const SOURCES: Source[] = [
@@ -103,7 +129,7 @@ const SOURCES: Source[] = [
   { source: "subfrost-api", slug: "authentication", url: "https://api.subfrost.io/docs/authentication" },
   { source: "subfrost-api", slug: "rate-limits", url: "https://api.subfrost.io/docs/platform/rate-limits" },
   // alkanes-rs
-  { source: "alkanes-rs", slug: "readme", url: "https://raw.githubusercontent.com/kungfuflex/alkanes-rs/master/README.md" },
+  { source: "alkanes-rs", slug: "readme", url: "https://raw.githubusercontent.com/kungfuflex/alkanes-rs/main/README.md" },
   // AlkaneScan tutorials (alkanescan.org/tutorials) — server-rendered, content in .tut-page
   { source: "tutorials", slug: "what-is-alkanes", url: "https://alkanescan.org/tutorials/tutorial-what-is-alkanes.php" },
   { source: "tutorials", slug: "make-smart-contract", url: "https://alkanescan.org/tutorials/tutorial-smart-contract.php" },
@@ -139,6 +165,12 @@ const SOURCES: Source[] = [
   { source: "orddao", slug: "ico-existing-token", url: "https://raw.githubusercontent.com/orddao/Alkanes-ICO-contract-for-exist-token/main/README.md" },
   { source: "orddao", slug: "ico-btc-or-diesel", url: "https://raw.githubusercontent.com/orddao/ICO-contract---Alkanescan/main/README.md" },
   { source: "orddao", slug: "panda-strategy", url: "https://raw.githubusercontent.com/orddao/PandaStrategy/main/README.md" },
+  // Orbitals — Alkanes NFTs (a Token with total supply 1 + opcode 1000 = media)
+  { source: "orbitals", slug: "std-orbital", url: "https://raw.githubusercontent.com/kungfuflex/alkanes-rs/main/crates/alkanes-std-orbital/src/lib.rs" },
+  { source: "orbitals", slug: "launchpad-readme", url: "https://raw.githubusercontent.com/0xsupersimon/nft-launchpad-alkanes/main/README.md" },
+  { source: "orbitals", slug: "collection-contract", url: "https://raw.githubusercontent.com/0xsupersimon/nft-launchpad-alkanes/main/alkanes-collection/src/lib.rs" },
+  { source: "orbitals", slug: "nft-contract", url: "https://raw.githubusercontent.com/0xsupersimon/nft-launchpad-alkanes/main/alkanes-nft/src/lib.rs" },
+  { source: "orbitals", slug: "svg-generator", url: "https://raw.githubusercontent.com/0xsupersimon/nft-launchpad-alkanes/main/nft-generator/src/svg_generator.rs" },
 ];
 
 async function run(): Promise<void> {
@@ -155,9 +187,10 @@ async function run(): Promise<void> {
       const raw = await res.text();
       let title: string;
       let body: string;
-      if (s.url.endsWith(".md")) {
-        body = raw.trim();
-        title = firstMdHeading(body) || s.slug;
+      if (isRawText(s.url)) {
+        const r = rawDoc(s.url, s.slug, raw);
+        title = r.title;
+        body = r.body;
       } else {
         const ex = extract(raw, s.url);
         body = ex.markdown;
