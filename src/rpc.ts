@@ -2,6 +2,8 @@ import { log } from "./log.js";
 
 const ENDPOINT =
   process.env.SUBFROST_RPC ?? "https://mainnet.subfrost.io/v4/jsonrpc";
+const REST_ENDPOINT =
+  process.env.SUBFROST_REST ?? ENDPOINT.replace(/\/jsonrpc\/?$/, "/api");
 const API_KEY = process.env.SUBFROST_API_KEY;
 
 let counter = 0;
@@ -53,6 +55,44 @@ export async function rpc<T = unknown>(
       throw new Error(`Subfrost RPC timeout after ${timeoutMs}ms (${method})`);
     }
     log("rpc failed", method, String(err));
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * POST to the Subfrost REST API (https://…/v4/api). Used by the read-only AMM
+ * pool tools. Returns the unwrapped `data` field. Header auth, like rpc().
+ */
+export async function restPost<T = unknown>(
+  path: string,
+  body: unknown,
+  timeoutMs = 20_000,
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${REST_ENDPOINT}${path}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(API_KEY ? { "x-subfrost-api-key": API_KEY } : {}),
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`Subfrost REST HTTP ${res.status}: ${t.slice(0, 300)}`);
+    }
+    const json = (await res.json()) as { data?: T };
+    return (json.data ?? json) as T;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Subfrost REST timeout after ${timeoutMs}ms (${path})`);
+    }
+    log("rest failed", path, String(err));
     throw err;
   } finally {
     clearTimeout(timer);

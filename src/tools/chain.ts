@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { rpc, assertAllowed, hasApiKey } from "../rpc.js";
+import { rpc, restPost, assertAllowed, hasApiKey } from "../rpc.js";
 
 const ok = (data: unknown) => ({
   content: [
@@ -94,6 +94,52 @@ function decodeData(hex: string | undefined, how: Decode): unknown {
     default:
       return hex ?? "0x";
   }
+}
+
+interface TokenMeta {
+  id: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  totalSupply: string | null;
+  supplyOpcode: number | null;
+  note?: string;
+}
+
+/** Read an alkane's basic token metadata via opcode views. Handles the common
+ *  variants: name=99, symbol=100, decimals=102, total supply at 105 (e.g. frBTC)
+ *  or 101 (e.g. the orbital standard). */
+async function readToken(
+  id: { block: number; tx: number },
+  blockTag = "latest",
+): Promise<TokenMeta> {
+  const safe = (p: Promise<SimResult>) =>
+    p.catch((e): SimResult => ({ execution: { data: "0x", error: String(e) } }));
+  const [n, s, d, s101, s105] = await Promise.all([
+    safe(simulateOpcode(id, 99, [], blockTag)),
+    safe(simulateOpcode(id, 100, [], blockTag)),
+    safe(simulateOpcode(id, 102, [], blockTag)),
+    safe(simulateOpcode(id, 101, [], blockTag)),
+    safe(simulateOpcode(id, 105, [], blockTag)),
+  ]);
+  const sup105 = hexToU128(s105.execution?.data);
+  const sup101 = hexToU128(s101.execution?.data);
+  const supplyOpcode = sup105 !== "0" ? 105 : sup101 !== "0" ? 101 : null;
+  const totalSupply = supplyOpcode === null ? null : sup105 !== "0" ? sup105 : sup101;
+  const meta: TokenMeta = {
+    id: `${id.block}:${id.tx}`,
+    name: hexToUtf8(n.execution?.data),
+    symbol: hexToUtf8(s.execution?.data),
+    decimals: Number(hexToU128(d.execution?.data)),
+    totalSupply,
+    supplyOpcode,
+  };
+  if (totalSupply === "1") {
+    meta.note = "totalSupply is 1 — likely an Orbital/NFT; try aries_oracle_read opcode 1000 for media.";
+  } else if (supplyOpcode === null) {
+    meta.note = "supply not exposed via opcode 101/105 — this contract may use a different scheme (probe with aries_simulate).";
+  }
+  return meta;
 }
 
 export function registerChainTools(server: McpServer): void {
@@ -302,6 +348,93 @@ export function registerChainTools(server: McpServer): void {
           /* height is best-effort */
         }
         return ok({ oracle: `${block}:${tx}`, symbolId, ...p, ageBlocks });
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_token",
+    {
+      description:
+        "Read any Alkanes token's metadata (name, symbol, decimals, totalSupply) by its alkane id {block, tx} via opcode views — works when alkanes_meta does not. Detects supply at opcode 105 (frBTC-style) or 101 (orbital/NFT-style) and flags supply-1 tokens as likely Orbitals.",
+      inputSchema: {
+        block: z.number().int(),
+        tx: z.number().int(),
+        blockTag: z.string().optional(),
+      },
+    },
+    async ({ block, tx, blockTag }) => {
+      try {
+        return ok(await readToken({ block, tx }, blockTag ?? "latest"));
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_diesel_status",
+    {
+      description:
+        "Convenience: read DIESEL — the Alkanes genesis token at 2:0 (the base token most contracts pair against) — name, symbol, decimals, and totalSupply in one call.",
+      inputSchema: {},
+    },
+    async () => {
+      try {
+        return ok({ token: "DIESEL", ...(await readToken({ block: 2, tx: 0 })) });
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_pools",
+    {
+      description:
+        "List Alkanes AMM liquidity pools with details (reserves, TVL, 24h volume, trending) for a factory, via the Subfrost REST API (get-all-pools-details). `factory` defaults to 4:65522 (the documented AMM factory); if that returns 0 pools, pass your AMM factory's block:tx.",
+      inputSchema: {
+        factory: z
+          .string()
+          .optional()
+          .describe('AMM factory alkane id "block:tx" (default "4:65522")'),
+      },
+    },
+    async ({ factory }) => {
+      try {
+        const [block, tx] = (factory ?? "4:65522").split(":");
+        return ok(await restPost("/get-all-pools-details", { factoryId: { block, tx } }));
+      } catch (e) {
+        return fail(String(e));
+      }
+    },
+  );
+
+  server.registerTool(
+    "aries_pool_info",
+    {
+      description:
+        "Get details (reserves, token pair, price) for one Alkanes AMM pool via the Subfrost REST API (get-pool-details). Give the pool's alkane id as block:tx; `factory` defaults to 4:65522.",
+      inputSchema: {
+        pool: z.string().describe('Pool alkane id "block:tx"'),
+        factory: z
+          .string()
+          .optional()
+          .describe('AMM factory alkane id "block:tx" (default "4:65522")'),
+      },
+    },
+    async ({ pool, factory }) => {
+      try {
+        const [fb, ft] = (factory ?? "4:65522").split(":");
+        const [pb, pt] = pool.split(":");
+        return ok(
+          await restPost("/get-pool-details", {
+            factoryId: { block: fb, tx: ft },
+            poolId: { block: pb, tx: pt },
+          }),
+        );
       } catch (e) {
         return fail(String(e));
       }
