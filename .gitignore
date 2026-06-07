@@ -3,5 +3,8 @@ dist/
 .env
 *.log
 
+# local incident-learning store (runtime data, not committed)
+data/
+
 # local MCP smoke-test harness (not part of the shipped server)
 scripts/probe.mjs

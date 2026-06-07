@@ -4,6 +4,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerChainTools } from "./tools/chain.js";
 import { registerKnowledgeTools } from "./tools/knowledge.js";
 import { registerDevTools } from "./tools/dev.js";
+import { registerIncidentTools } from "./tools/incidents.js";
+import { incidentCount } from "./incidents.js";
 import { buildIndex } from "./search/index.js";
 import { hasApiKey } from "./rpc.js";
 import { log } from "./log.js";
@@ -19,6 +21,8 @@ async function main(): Promise<void> {
   registerKnowledgeTools(server);
   registerChainTools(server);
   registerDevTools(server);
+  registerIncidentTools(server);
+  log(`incident store: ${incidentCount()} report(s)`);
 
   if (!hasApiKey()) {
     log(
