@@ -113,6 +113,9 @@ function rawDoc(url: string, slug: string, raw: string): { title: string; body: 
 const SOURCES: Source[] = [
   // Subfrost protocol docs
   { source: "subfrost", slug: "technical-overview", url: "https://docs.subfrost.io/introduction/technical-overview" },
+  { source: "subfrost", slug: "alkanes-integration", url: "https://docs.subfrost.io/developer-guide/alkanes-integration" },
+  { source: "subfrost", slug: "key-components-alkanes", url: "https://docs.subfrost.io/key-components/alkanes" },
+  { source: "subfrost", slug: "subfrost-node-cli-reference", url: "https://docs.subfrost.io/reference/subfrost-node-cli-reference" },
   { source: "subfrost", slug: "frost-and-roast", url: "https://docs.subfrost.io/key-components/frost-and-roast" },
   { source: "subfrost", slug: "schnorr-signatures", url: "https://docs.subfrost.io/key-components/schnorr-signatures" },
   { source: "subfrost", slug: "wrapping-frbtc", url: "https://docs.subfrost.io/developer-guide/wrapping-frBTC" },
