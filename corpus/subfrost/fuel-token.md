@@ -1,0 +1,38 @@
+---
+title: FUEL Token
+source: subfrost
+source_url: https://docs.subfrost.io/tokens/FUEL-token
+---
+
+On this page
+
+# FUEL Token
+
+The `FUEL` token is the governance and utility token of SUBFROST. It is designed to align the incentives of all participants in the network and to capture much of the value created by the SUBFROST protocol.
+
+_FUEL tokenomics are not yet ready for public release, but the following information provides insight into its utility._
+
+Learn more about SUBFROST's Proof-of-Stake, [**here.**](/key-components/proof-of-stake)
+
+## Governance[​](#governance "Direct link to Governance")
+
+`FUEL` token holders are the governors of the SUBFROST system. They are responsible for:
+
+-   **Managing the `dxBTC` treasury:** `FUEL` holders vote on which yield-generating strategies to deploy the `frBTC` held in the `dxBTC` alkane.
+-   **Setting fees:** `FUEL` holders can vote to adjust the fees for wrapping/unwrapping BTC to/from `frBTC` and for other services on the network.
+-   **Upgrading the protocol:** `FUEL` holders can vote on proposals to upgrade the SUBFROST protocol and its various components.
+
+This decentralized governance model ensures that the SUBFROST protocol is always aligned with the interests of its users and stakeholders.
+
+## Value Accrual[​](#value-accrual "Direct link to Value Accrual")
+
+The `FUEL` token is designed to accrue value from the economic activity on the SUBFROST protocol. The primary source of value accrual is from the fees generated at every wrap and unwrap of **native BTC** and `frBTC`, with several other future revenue streams.
+
+Currently, a small fee of 0.1% is charged for `wrap` and `unwrap` operations.
+
+A portion of these fees are used to buy back `FUEL` tokens from the open market and then burn them, creating a deflationary pressure on the token supply.
+
+Additionally, there will be time-locked staking to incentivize liquidity. Holders can stake FUEL/frBTC LP in gauges on our app to boost dxBTC yield. This flywheel ensures positive pressure on FUEL price and market health.
+
+-   [Governance](#governance)
+-   [Value Accrual](#value-accrual)

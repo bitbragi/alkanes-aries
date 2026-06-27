@@ -1,0 +1,8 @@
+node_modules
+dist
+data
+.git
+.env
+*.log
+scripts/probe.mjs
+Aries-Cloud-*.md
