@@ -5,10 +5,7 @@
   <img alt="Aries" src="assets/aries-wordmark-ink.png" width="300" />
 </picture>
 
-<br />
-<br />
-
-<img src="assets/aries-logo-tagline.png" alt="Aries — Alkanes + Subfrost" width="300" />
+<img src="assets/aries-logo-tagline.png" alt="Aries — Alkanes + Subfrost" width="270" />
 
 ### Make any AI assistant fluent in building on Alkanes&nbsp;+&nbsp;Subfrost
 
