@@ -1,11 +1,15 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/aries-wordmark.png" />
-  <img alt="Aries" src="assets/aries-wordmark-ink.png" width="300" />
-</picture>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/aries-wordmark.png" />
+    <img alt="Aries" src="assets/aries-wordmark-ink.png" width="300" />
+  </picture>
+</p>
 
-<img src="assets/aries-logo-tagline.png" alt="Aries — Alkanes + Subfrost" width="270" />
+<p align="center">
+  <img src="assets/aries-logo-tagline.png" alt="Aries — Alkanes + Subfrost" width="270" />
+</p>
 
 ### Make any AI assistant fluent in building on Alkanes&nbsp;+&nbsp;Subfrost
 
