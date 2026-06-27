@@ -1,85 +1,106 @@
-# Alkanes Aries
+<div align="center">
 
-**A local, read-only AI companion for building on Alkanes + Subfrost — bring your own key.**
+# Aries
+
+**Make your AI assistant fluent in building on Alkanes + Subfrost.**
 
 Aries is a [Model Context Protocol](https://modelcontextprotocol.io) server that
-turns any MCP-capable assistant — Claude Code, Claude Desktop, and friends — into
-a fluent Alkanes/Subfrost builder. One stdio server, four layers: your assistant
-can **read the docs, query the live chain, scaffold contracts, and learn from
-past mistakes** — without ever leaving the editor.
+gives any MCP-capable AI — Claude Code, Claude Desktop, Cursor — a knowledge +
+live-chain-data layer for the Alkanes metaprotocol and the Subfrost network. It
+runs on **your** machine with **your** Subfrost key.
 
-This is the **open, bring-your-own-key edition.** It ships with the full static
-baseline knowledgebase (75 curated docs) and runs entirely on your machine with
-your own Subfrost API key. It does **not** include the hosted instance's
-accumulated, continuously-learning incident corpus.
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-server-blue)](https://modelcontextprotocol.io)
+[![Node](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Read-only](https://img.shields.io/badge/wallet-read--only-success)](#safety--read-only-by-design)
+[![License](https://img.shields.io/badge/license-MIT-black)](#license)
 
-> **Local vs. hosted.** This repo gives you the *static baseline knowledge* plus
-> your own key — a complete, self-contained companion. The hosted edition at
-> **[aries.bragi.build](https://aries.bragi.build)** adds a *living corpus* that
-> keeps getting smarter from what every connected agent learns. Same tools;
-> hosted just remembers more over time.
+</div>
+
+---
+
+Building on Alkanes means juggling protocol docs, a JSON-RPC gateway, contract
+bytecode, and a pile of `block:tx` ids — and your AI assistant knows none of it
+out of the box. Aries fixes that. Point your assistant at one server and it can
+**read the docs, query the live chain, and scaffold contracts** without leaving
+the editor.
 
 ## What you get
 
-- **Knowledge** — a searchable corpus of protocol docs, the Subfrost
-  JSON-RPC/REST reference, alkanes-rs, step-by-step tutorials, oracle docs, and
-  reference contracts: `aries_search`, `aries_doc` (TOC-first), `aries_full_doc`,
-  `aries_catalog`, `aries_tutorials`.
-- **Chain data** — live, read-only queries against the Subfrost gateway:
-  `aries_tokens_by_address`, `aries_token`, `aries_contract_meta`,
-  `aries_bytecode`, `aries_simulate`, `aries_frbtc_status`,
-  `aries_diesel_status`, `aries_oracle_read`, `aries_oracle_price`,
-  `aries_pools`, `aries_pool_info`, `aries_rpc`.
-- **Dev** — constants + contract scaffolds (incl. `orbital` NFTs):
-  `aries_constants`, `aries_scaffold`.
-- **Learning** — a **local** incident loop so Aries improves as *you* use it:
-  `aries_incident_report`, `aries_incident_query`. Reports are written only to
-  your own machine — nothing is shared.
+Three capability layers, **21 tools**, one local server:
 
-### Ask it things like
+- 🧠 **Knowledge** — a searchable corpus of **75 curated docs**: the Alkanes
+  metaprotocol, the Subfrost JSON-RPC/REST reference, alkanes-rs, step-by-step
+  tutorials, oracle docs, and reference contracts.
+  → `aries_search`, `aries_doc`, `aries_full_doc`, `aries_catalog`, `aries_tutorials`
+- 🔗 **Live chain data** — read-only queries against the Subfrost gateway:
+  token holdings, contract metadata, bytecode, `simulate`, frBTC peg + DIESEL
+  status, oracle reads, AMM pools, and a guarded RPC passthrough.
+  → `aries_tokens_by_address`, `aries_token`, `aries_contract_meta`, `aries_bytecode`,
+    `aries_simulate`, `aries_frbtc_status`, `aries_diesel_status`, `aries_oracle_read`,
+    `aries_oracle_price`, `aries_pools`, `aries_pool_info`, `aries_rpc`
+- 🛠️ **Dev scaffolds** — protocol constants and contract templates, including
+  `orbital` NFTs.
+  → `aries_constants`, `aries_scaffold`
 
-- *"Is the frBTC peg live, who's the signer, and how much frBTC exists?"* → `aries_frbtc_status`
-- *"What Alkanes tokens does `bc1p…` hold?"* → `aries_tokens_by_address`
-- *"Show the AMM pools / a pool's reserves."* → `aries_pools`, `aries_pool_info`
-- *"How do I build a token / oracle / stablecoin / AMM / Orbital?"* → `aries_tutorials` + `aries_scaffold`
+Plus a **local learning loop** (`aries_incident_report` / `aries_incident_query`)
+that records gotchas to your own machine as you work — nothing is shared.
 
-## Safety model
+### Ask your assistant things like
 
-Aries is **read-only / analytics**. No signing, no broadcast, no wallet keys —
-those stay in the `alkanes` CLI, where you hold the keys. The `aries_rpc`
-passthrough is allowlisted to read methods and explicitly blocks
-broadcast/spend/admin calls. The incident loop writes only to a **local** store
-(never the chain) and sanitizes secrets / keys / paths out of reports on the way
-in.
+> *"Is the frBTC peg live, who's the signer, and how much frBTC exists?"*
+> *"What Alkanes tokens does `bc1p…` hold?"*
+> *"Show the AMM pools and a pool's reserves."*
+> *"How do I build a token / oracle / stablecoin / AMM / Orbital?"*
+> *"Scaffold an Orbital NFT contract."*
 
-## Setup
+## Local vs. hosted
 
-You need [Node.js](https://nodejs.org) ≥ 20 and your own Subfrost API key.
+This repo is the **open, bring-your-own-key edition**. It ships the full static
+baseline knowledge and runs entirely on your machine.
+
+| | **Local (this repo)** | **Hosted — [aries.bragi.build](https://aries.bragi.build)** |
+| --- | --- | --- |
+| All 21 tools | ✅ | ✅ |
+| 75-doc baseline knowledge | ✅ | ✅ |
+| Your own Subfrost key | ✅ | managed for you |
+| Setup | clone + build | connect a URL |
+| **Living corpus of real-world lessons** | — | ✅ continuously learning |
+
+The hosted instance keeps a **growing corpus of real-world incidents** —
+hard-won lessons contributed by every connected agent — that a fresh local clone
+simply doesn't have. If you want the living brain without self-hosting, point
+your client at the hosted endpoint. Otherwise, everything below gets you running
+locally in a couple of minutes.
+
+## Quickstart
+
+**Requirements:** [Node.js](https://nodejs.org) ≥ 20 and a Subfrost API key.
 
 ```bash
 git clone https://github.com/bitbragi/alkanes-aries.git
 cd alkanes-aries
 npm install
-cp .env.example .env        # then edit .env and set SUBFROST_API_KEY
+cp .env.example .env        # then edit .env — see "Bring your own key" below
 npm run build
 ```
 
-### Bring your own Subfrost key
+### Bring your own key
 
-Aries talks to the Subfrost gateway with **your** key. Get one at
-<https://api.subfrost.io>, then put it in `.env` (see `.env.example`):
+Aries talks to the Subfrost gateway with **your** key — get one at
+[api.subfrost.io](https://api.subfrost.io), then set it in `.env`:
 
 ```bash
 SUBFROST_API_KEY=your-key-here
-# optional: SUBFROST_RPC=https://mainnet.subfrost.io/v4/jsonrpc
+# optional override:
+# SUBFROST_RPC=https://mainnet.subfrost.io/v4/jsonrpc
 ```
 
-The key is sent as the `x-subfrost-api-key` header (never in the URL path) and
-never leaves your machine except as that outbound header. `.env` is gitignored.
+The key is sent as the `x-subfrost-api-key` header (never in a URL) and never
+leaves your machine except as that outbound header. `.env` is gitignored.
 
-## Run it locally (stdio)
+### Connect your MCP client
 
-### Claude Code
+**Claude Code**
 
 ```bash
 claude mcp add --scope local --transport stdio aries \
@@ -87,11 +108,11 @@ claude mcp add --scope local --transport stdio aries \
   -- node /absolute/path/to/alkanes-aries/dist/index.js
 ```
 
-Verify with `claude mcp list`, then `/mcp` inside a session. `--` separates
-Claude's flags from the launch command; keep `-e KEY=value` right before `--`
-(it's variadic and will otherwise swallow the server name).
+Verify with `claude mcp list`, then `/mcp` in a session. (`--` separates Claude's
+flags from the launch command; keep `-e KEY=value` right before `--` — it's
+variadic and will otherwise swallow the server name.)
 
-### Claude Desktop
+**Claude Desktop / Cursor** (any client that takes a JSON server config)
 
 ```json
 {
@@ -99,36 +120,56 @@ Claude's flags from the launch command; keep `-e KEY=value` right before `--`
     "aries": {
       "command": "node",
       "args": ["/absolute/path/to/alkanes-aries/dist/index.js"],
-      "env": { "SUBFROST_API_KEY": "..." }
+      "env": { "SUBFROST_API_KEY": "your-key-here" }
     }
   }
 }
 ```
 
-Logs go to **stderr** only (stdout is the MCP protocol channel — never print to
-it). The doc index is built from `corpus/` at startup.
+That's it — your assistant now has all 21 Aries tools.
 
-### Environment
+## Safety — read-only by design
 
-- `SUBFROST_API_KEY` — required for chain-data tools.
-- `SUBFROST_RPC` / `SUBFROST_REST` — optional gateway overrides (default to the
-  mainnet JSON-RPC / REST endpoints).
-- `ARIES_INCIDENTS_PATH` — optional path for your local incident store (default
-  `data/incidents.jsonl`, gitignored).
+Aries is **analytics only**. It never signs, broadcasts, or touches wallets or
+keys:
 
-## Notes
+- The `aries_rpc` passthrough is **allowlisted to read methods** and explicitly
+  blocks broadcast / spend / admin calls.
+- Scaffolds and constants are emitted for **you** to run in your own `alkanes`
+  CLI, where you hold the keys.
+- The local incident loop writes only to your machine and sanitizes secrets,
+  keys, and paths out of any report.
+
+Your keys stay yours. Aries only reads and advises.
+
+## Configuration
+
+| Var | Purpose |
+| --- | --- |
+| `SUBFROST_API_KEY` | **Required** — auth for the live chain-data tools. |
+| `SUBFROST_RPC` / `SUBFROST_REST` | Optional gateway overrides (default to mainnet JSON-RPC / REST). |
+| `ARIES_INCIDENTS_PATH` | Optional path for your local incident store (default `data/incidents.jsonl`, gitignored). |
+
+Logs go to **stderr** only — stdout is the MCP protocol channel. The doc index
+is built from `corpus/` at startup.
+
+## Good to know
 
 - Alkane ids are `{block, tx}` / `block:tx`. frBTC = `32:0`, DIESEL (genesis) =
   `2:0`. Protocol tag is always `1`.
 - Read contract state with `aries_simulate`: the opcode goes in `inputs`
   (e.g. `[103]`), not `data`.
 - **Orbitals** (Alkanes NFTs) are a `Token` with total supply 1 + opcode `1000`
-  = media; read them with `aries_oracle_read`, and scaffold one with
+  = media; read them with `aries_oracle_read`, scaffold one with
   `aries_scaffold orbital`.
 - Extend the corpus by editing `corpus/` or adding URLs to `scripts/ingest.ts`
-  (HTML cleaned via turndown+jsdom; raw `.md`/`.rs` taken verbatim).
-- Tool descriptions are the prompt the model reads — keep them crisp when you
-  add tools.
+  (HTML cleaned via turndown + jsdom; raw `.md`/`.rs` taken verbatim).
+
+## Links
+
+- 🌐 Hosted, continuously-learning Aries: **[aries.bragi.build](https://aries.bragi.build)**
+- 📖 Model Context Protocol: **[modelcontextprotocol.io](https://modelcontextprotocol.io)**
+- 🔑 Subfrost API keys: **[api.subfrost.io](https://api.subfrost.io)**
 
 ## License
 
