@@ -1,49 +1,104 @@
 <div align="center">
 
-# Aries
+<img src="assets/aries-logo.png" alt="Aries" width="150" />
 
-**Make your AI assistant fluent in building on Alkanes + Subfrost.**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/aries-wordmark.png" />
+  <img alt="Aries" src="assets/aries-wordmark-ink.png" width="300" />
+</picture>
 
-Aries is a [Model Context Protocol](https://modelcontextprotocol.io) server that
-gives any MCP-capable AI — Claude Code, Claude Desktop, Cursor — a knowledge +
-live-chain-data layer for the Alkanes metaprotocol and the Subfrost network. It
-runs on **your** machine with **your** Subfrost key.
+### Make your AI assistant fluent in building on Alkanes&nbsp;+&nbsp;Subfrost
 
-[![MCP](https://img.shields.io/badge/Model_Context_Protocol-server-blue)](https://modelcontextprotocol.io)
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-server-5b50e8)](https://modelcontextprotocol.io)
 [![Node](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Read-only](https://img.shields.io/badge/wallet-read--only-success)](#safety--read-only-by-design)
+[![Wallet-safe](https://img.shields.io/badge/wallet-read--only-2ea043)](#-safety--read-only-by-design)
+[![Hosted](https://img.shields.io/badge/hosted-bragi.build%2Faries-f0883e)](https://bragi.build/aries)
 [![License](https://img.shields.io/badge/license-MIT-black)](#license)
 
 </div>
 
+Aries is a [Model Context Protocol](https://modelcontextprotocol.io) server that
+gives any MCP-capable AI — **Claude Code, Claude Desktop, Cursor** — a knowledge
+and live-chain-data layer for the **Alkanes** metaprotocol and the **Subfrost**
+network. Point your assistant at Aries and it can read the protocol docs, query
+the live chain, and scaffold contracts — without leaving your editor.
+
 ---
 
-Building on Alkanes means juggling protocol docs, a JSON-RPC gateway, contract
-bytecode, and a pile of `block:tx` ids — and your AI assistant knows none of it
-out of the box. Aries fixes that. Point your assistant at one server and it can
-**read the docs, query the live chain, and scaffold contracts** without leaving
-the editor.
+## ⚡ The fastest path: hosted Aries
 
-## What you get
+> ### 🧠 [**Subscribe to hosted Aries → bragi.build/aries**](https://bragi.build/aries)
+>
+> The hosted edition is a **living, continuously-learning instance.** Beyond the
+> baseline docs, it carries an **ever-growing corpus of real-world lessons** —
+> hard-won incident knowledge contributed by every connected agent — that a
+> fresh local clone simply does not have. No setup, no key management: connect a
+> URL and your assistant inherits the whole shared brain, getting smarter every
+> day.
 
-Three capability layers, **21 tools**, one local server:
+**Why hosted:**
+
+- 🌱 **The living corpus** — accumulated, reviewed real-world gotchas and fixes, not just static docs.
+- 🚀 **Zero setup** — no clone, no build, no key to provision. Connect and go.
+- 🎚️ **Tiered access** — from a free tier up to production throughput, with rate limits handled for you.
+- 🔄 **Always current** — the corpus and tools update server-side.
+
+If you'd rather run everything yourself, the open, bring-your-own-key edition in
+this repo has you covered. 👇
+
+---
+
+## 🛠️ Run it locally (bring your own key)
+
+Clone this repo and run Aries on your own machine with your **own Subfrost API
+key.** You get the full toolset and the complete **75-doc static baseline
+knowledge** — minus the hosted instance's accumulated learning.
+
+### Get a Subfrost API key
+
+Aries talks to the Subfrost gateway with your key. Grab one here:
+
+> 🔑 [**Sign up for a Subfrost API key**](https://api.subfrost.io/auth/signup?ref=82D1DE7C)
+> — signing up through this referral link gets you **a discount on your first month**.
+
+## 🆚 Local vs. hosted
+
+Both editions ship the same 21 tools and the same 75-doc baseline. The
+difference is the **living corpus** — and who manages the keys.
+
+| | 🛠️ **Local** (this repo) | 🧠 **Hosted** ([bragi.build/aries](https://bragi.build/aries)) |
+| --- | :---: | :---: |
+| All 21 tools | ✅ | ✅ |
+| 75-doc baseline knowledge | ✅ | ✅ |
+| Live Subfrost chain data | ✅ (your key) | ✅ (managed) |
+| **Living corpus of real-world lessons** | — | ✅ ever-growing |
+| Accumulated incident learning | — | ✅ |
+| Setup | clone · install · build | connect a URL |
+| Subfrost key | you provide | managed for you |
+| Access | unlimited, local | free → production tiers |
+
+Local gives you a complete, self-contained companion on the **static** baseline.
+Hosted adds the **continuously-learning brain** on top. Start local; upgrade to
+[hosted](https://bragi.build/aries) when you want the living corpus.
+
+## 🧰 What's inside — 21 tools, 3 layers
 
 - 🧠 **Knowledge** — a searchable corpus of **75 curated docs**: the Alkanes
   metaprotocol, the Subfrost JSON-RPC/REST reference, alkanes-rs, step-by-step
   tutorials, oracle docs, and reference contracts.
-  → `aries_search`, `aries_doc`, `aries_full_doc`, `aries_catalog`, `aries_tutorials`
-- 🔗 **Live chain data** — read-only queries against the Subfrost gateway:
-  token holdings, contract metadata, bytecode, `simulate`, frBTC peg + DIESEL
-  status, oracle reads, AMM pools, and a guarded RPC passthrough.
-  → `aries_tokens_by_address`, `aries_token`, `aries_contract_meta`, `aries_bytecode`,
+  <br>→ `aries_search`, `aries_doc`, `aries_full_doc`, `aries_catalog`, `aries_tutorials`
+- 🔗 **Live chain data** — read-only queries against the Subfrost gateway: token
+  holdings, contract metadata, bytecode, `simulate`, frBTC peg + DIESEL status,
+  oracle reads, AMM pools, and a guarded RPC passthrough.
+  <br>→ `aries_tokens_by_address`, `aries_token`, `aries_contract_meta`, `aries_bytecode`,
     `aries_simulate`, `aries_frbtc_status`, `aries_diesel_status`, `aries_oracle_read`,
     `aries_oracle_price`, `aries_pools`, `aries_pool_info`, `aries_rpc`
 - 🛠️ **Dev scaffolds** — protocol constants and contract templates, including
   `orbital` NFTs.
-  → `aries_constants`, `aries_scaffold`
+  <br>→ `aries_constants`, `aries_scaffold`
 
-Plus a **local learning loop** (`aries_incident_report` / `aries_incident_query`)
-that records gotchas to your own machine as you work — nothing is shared.
+Plus a **local** learning loop (`aries_incident_report` / `aries_incident_query`)
+that records gotchas to your own machine as you work.
 
 ### Ask your assistant things like
 
@@ -53,41 +108,20 @@ that records gotchas to your own machine as you work — nothing is shared.
 > *"How do I build a token / oracle / stablecoin / AMM / Orbital?"*
 > *"Scaffold an Orbital NFT contract."*
 
-## Local vs. hosted
+## 🚀 Quickstart (~2 minutes)
 
-This repo is the **open, bring-your-own-key edition**. It ships the full static
-baseline knowledge and runs entirely on your machine.
-
-| | **Local (this repo)** | **Hosted — [aries.bragi.build](https://aries.bragi.build)** |
-| --- | --- | --- |
-| All 21 tools | ✅ | ✅ |
-| 75-doc baseline knowledge | ✅ | ✅ |
-| Your own Subfrost key | ✅ | managed for you |
-| Setup | clone + build | connect a URL |
-| **Living corpus of real-world lessons** | — | ✅ continuously learning |
-
-The hosted instance keeps a **growing corpus of real-world incidents** —
-hard-won lessons contributed by every connected agent — that a fresh local clone
-simply doesn't have. If you want the living brain without self-hosting, point
-your client at the hosted endpoint. Otherwise, everything below gets you running
-locally in a couple of minutes.
-
-## Quickstart
-
-**Requirements:** [Node.js](https://nodejs.org) ≥ 20 and a Subfrost API key.
+**Requirements:** [Node.js](https://nodejs.org) ≥ 20 and a
+[Subfrost API key](https://api.subfrost.io/auth/signup?ref=82D1DE7C).
 
 ```bash
 git clone https://github.com/bitbragi/alkanes-aries.git
 cd alkanes-aries
 npm install
-cp .env.example .env        # then edit .env — see "Bring your own key" below
+cp .env.example .env        # then edit .env (see below)
 npm run build
 ```
 
-### Bring your own key
-
-Aries talks to the Subfrost gateway with **your** key — get one at
-[api.subfrost.io](https://api.subfrost.io), then set it in `.env`:
+Set your key in `.env`:
 
 ```bash
 SUBFROST_API_KEY=your-key-here
@@ -112,7 +146,7 @@ Verify with `claude mcp list`, then `/mcp` in a session. (`--` separates Claude'
 flags from the launch command; keep `-e KEY=value` right before `--` — it's
 variadic and will otherwise swallow the server name.)
 
-**Claude Desktop / Cursor** (any client that takes a JSON server config)
+**Cursor / Claude Desktop** (any client that takes a JSON server config)
 
 ```json
 {
@@ -128,7 +162,7 @@ variadic and will otherwise swallow the server name.)
 
 That's it — your assistant now has all 21 Aries tools.
 
-## Safety — read-only by design
+## 🔒 Safety — read-only by design
 
 Aries is **analytics only**. It never signs, broadcasts, or touches wallets or
 keys:
@@ -142,7 +176,7 @@ keys:
 
 Your keys stay yours. Aries only reads and advises.
 
-## Configuration
+## ⚙️ Configuration
 
 | Var | Purpose |
 | --- | --- |
@@ -153,7 +187,7 @@ Your keys stay yours. Aries only reads and advises.
 Logs go to **stderr** only — stdout is the MCP protocol channel. The doc index
 is built from `corpus/` at startup.
 
-## Good to know
+## 💡 Good to know
 
 - Alkane ids are `{block, tx}` / `block:tx`. frBTC = `32:0`, DIESEL (genesis) =
   `2:0`. Protocol tag is always `1`.
@@ -165,11 +199,11 @@ is built from `corpus/` at startup.
 - Extend the corpus by editing `corpus/` or adding URLs to `scripts/ingest.ts`
   (HTML cleaned via turndown + jsdom; raw `.md`/`.rs` taken verbatim).
 
-## Links
+## 🔗 Links
 
-- 🌐 Hosted, continuously-learning Aries: **[aries.bragi.build](https://aries.bragi.build)**
-- 📖 Model Context Protocol: **[modelcontextprotocol.io](https://modelcontextprotocol.io)**
-- 🔑 Subfrost API keys: **[api.subfrost.io](https://api.subfrost.io)**
+- 🧠 Hosted, continuously-learning Aries — **[bragi.build/aries](https://bragi.build/aries)**
+- 🔑 Subfrost API keys — **[api.subfrost.io](https://api.subfrost.io/auth/signup?ref=82D1DE7C)**
+- 📖 Model Context Protocol — **[modelcontextprotocol.io](https://modelcontextprotocol.io)**
 
 ## License
 
